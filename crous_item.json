@@ -1,0 +1,5 @@
+{"id": 9001, "label": "T1", "area": {"min": 18.0, "max": 18.0},
+ "residence": {"label": "RESIDENCE TEST", "address": "1 rue Exemple 92000 NANTERRE",
+               "location": {"lat": 48.8956, "lon": 2.2147}},
+ "occupationModes": [{"type": "alone", "rent": {"min": 38250, "max": 38250}},
+                     {"type": "house_sharing", "rent": {"min": 24661, "max": 24661}}]}
