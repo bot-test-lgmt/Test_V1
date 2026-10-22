@@ -1,0 +1,53 @@
+name: Veille logement
+
+on:
+  # Déclenchement principal : cron-job.org appelle GitHub toutes les 5 minutes
+  # (voir le guide). Le planning GitHub ci-dessous sert de secours.
+  workflow_dispatch:
+    inputs:
+      test:
+        description: "Envoyer un message de test"
+        type: boolean
+        default: false
+  schedule:
+    - cron: "4,19,34,49 * * * *"
+
+# Un seul passage à la fois (les suivants attendent leur tour)
+concurrency:
+  group: veille-logement
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  veille:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Récupérer la mémoire du bot
+        uses: actions/cache/restore@v4
+        with:
+          path: etat.json
+          key: etat-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: etat-
+
+      - name: Vérifier les logements
+        env:
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          GMAIL_ADRESSE: ${{ secrets.GMAIL_ADRESSE }}
+          GMAIL_MOT_DE_PASSE_APP: ${{ secrets.GMAIL_MOT_DE_PASSE_APP }}
+          EMAIL_DESTINATAIRE: ${{ secrets.EMAIL_DESTINATAIRE }}
+          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+          MODE_TEST: ${{ inputs.test }}
+        run: python3 bot.py
+
+      - name: Sauvegarder la mémoire du bot
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: etat.json
+          key: etat-${{ github.run_id }}-${{ github.run_attempt }}
