@@ -1,7 +1,3 @@
-# 🏠 Bot logement étudiant (ESILV, La Défense)
-
-Ce bot vérifie **toutes les 5 minutes, 24h/24, même ordi éteint** :
-
 | Site | Ce qui est surveillé |
 |---|---|
 | **CROUS** (trouverunlogement.lescrous.fr) | tous les logements mis en ligne (phase complémentaire + attribution au fil de l'eau) |
