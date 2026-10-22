@@ -1,0 +1,432 @@
+[
+ {
+  "nom": "residence-etudiants-joinville-le-pont-les-nouveaux-ponts-arpej-2",
+  "ville": "Joinville-le-Pont",
+  "cp": "94340",
+  "prix_min": 447.52,
+  "lat": 48.81316,
+  "lon": 2.46589,
+  "page": "https://www.arpej.fr/fr/residence/residence-etudiants-joinville-le-pont-les-nouveaux-ponts-arpej-2/",
+  "jeunes_actifs": false
+ },
+ {
+  "nom": "les-bords-de-seine-residence-etudiante-alfortville",
+  "ville": "Alfortville",
+  "cp": "94140",
+  "prix_min": 542.09,
+  "lat": 48.81244,
+  "lon": 2.4112,
+  "page": "https://www.arpej.fr/fr/residence/les-bords-de-seine-residence-etudiante-alfortville/",
+  "jeunes_actifs": false
+ },
+ {
+  "nom": "alpha-residence-etudiante-aubervilliers",
+  "ville": "Aubervilliers",
+  "cp": "93300",
+  "prix_min": 441.55,
+  "lat": 48.91018,
+  "lon": 2.36638,
+  "page": "https://www.arpej.fr/fr/residence/alpha-residence-etudiante-aubervilliers/",
+  "jeunes_actifs": false
+ },
+ {
+  "nom": "carmen-caron-residence-etudiante-aubervilliers",
+  "ville": "Aubervilliers",
+  "cp": "93300",
+  "prix_min": 692.77,
+  "lat": 48.90838,
+  "lon": 2.38725,
+  "page": "https://www.arpej.fr/fr/residence/carmen-caron-residence-etudiante-aubervilliers/",
+  "jeunes_actifs": false
+ },
+ {
+  "nom": "omega-residence-etudiante-aubervilliers",
+  "ville": "Aubervilliers",
+  "cp": "93300",
+  "prix_min": 434.94,
+  "lat": 48.9089,
+  "lon": 2.36964,
+  "page": "https://www.arpej.fr/fr/residence/omega-residence-etudiante-aubervilliers/",
+  "jeunes_actifs": false
+ },
+ {
+  "nom": "etudiant-bezons",
+  "ville": "Bezons",
+  "cp": "95870",
+  "prix_min": 488.96,
+  "lat": 48.92993,
+  "lon": 2.21289,
+  "page": "https://www.arpej.fr/fr/residence/etudiant-bezons/",
+  "jeunes_actifs": false
+ },
+ {
+  "nom": "volti-residence-etudiante-cachan",
+  "ville": "Cachan",
+  "cp": "94230",
+  "prix_min": 439.99,
+  "lat": 48.78761,
+  "lon": 2.33035,
+  "page": "https://www.arpej.fr/fr/residence/volti-residence-etudiante-cachan/",
+  "jeunes_actifs": false
+ },
+ {
+  "nom": "du-parc-residence-etudiante-charenton-le-pont",
+  "ville": "Charenton-le-Pont",
+  "cp": "94220",
+  "prix_min": 592.51,
+  "lat": 48.8219,
+  "lon": 2.405,
+  "page": "https://www.arpej.fr/fr/residence/du-parc-residence-etudiante-charenton-le-pont/",
+  "jeunes_actifs": false
+ },
+ {
+  "nom": "louis-faure-dujarric-residence-jeunes-actifs-colombes",
+  "ville": "Colombes",
+  "cp": "92700",
+  "prix_min": 502.49,
+  "lat": 48.90966,
+  "lon": 2.23347,
+  "page": "https://www.arpej.fr/fr/residence/louis-faure-dujarric-residence-jeunes-actifs-colombes/",
+  "jeunes_actifs": true
+ },
+ {
+  "nom": "jacques-henri-lartigue-residence-etudiante-courbevoie",
+  "ville": "Courbevoie",
+  "cp": "92400",
+  "prix_min": 522.78,
+  "lat": 48.89648,
+  "lon": 2.23524,
+  "page": "https://www.arpej.fr/fr/residence/jacques-henri-lartigue-residence-etudiante-courbevoie/",
+  "jeunes_actifs": false
+ },
+ {
+  "nom": "residence-etudiante-baudin-gennevilliers",
+  "ville": "Gennevilliers",
+  "cp": "92230",
+  "prix_min": 553.81,
+  "lat": 48.93285,
+  "lon": 2.29706,
+  "page": "https://www.arpej.fr/fr/residence/residence-etudiante-baudin-gennevilliers/",
+  "jeunes_actifs": false
+ },
+ {
+  "nom": "residence-etudiante-larose-gennevilliers",
+  "ville": "Gennevilliers",
+  "cp": "92230",
+  "prix_min": 566.26,
+  "lat": 48.93269,
+  "lon": 2.30163,
+  "page": "https://www.arpej.fr/fr/residence/residence-etudiante-larose-gennevilliers/",
+  "jeunes_actifs": false
+ },
+ {
+  "nom": "nicolas-appert-residence-etudiante-ivry-sur-seine",
+  "ville": "Ivry-sur-Seine",
+  "cp": "94200",
+  "prix_min": 488.43,
+  "lat": 48.80773,
+  "lon": 2.39034,
+  "page": "https://www.arpej.fr/fr/residence/nicolas-appert-residence-etudiante-ivry-sur-seine/",
+  "jeunes_actifs": false
+ },
+ {
+  "nom": "la-garenne-colombes",
+  "ville": "La Garenne-Colombes",
+  "cp": "92250",
+  "prix_min": 427.08,
+  "lat": 48.90632,
+  "lon": 2.25021,
+  "page": "https://www.arpej.fr/fr/residence/la-garenne-colombes/",
+  "jeunes_actifs": false
+ },
+ {
+  "nom": "porte-ditalie-residence-etudiante-le-kremlin-bicetre",
+  "ville": "Le Kremlin-Bicêtre",
+  "cp": "94270",
+  "prix_min": 591.97,
+  "lat": 48.81557,
+  "lon": 2.3635,
+  "page": "https://www.arpej.fr/fr/residence/porte-ditalie-residence-etudiante-le-kremlin-bicetre/",
+  "jeunes_actifs": false
+ },
+ {
+  "nom": "alfred-sisley-residence-etudiante-le-port-marly",
+  "ville": "Le Port-Marly",
+  "cp": "78560",
+  "prix_min": 429.97,
+  "lat": 48.88404,
+  "lon": 2.10527,
+  "page": "https://www.arpej.fr/fr/residence/alfred-sisley-residence-etudiante-le-port-marly/",
+  "jeunes_actifs": false
+ },
+ {
+  "nom": "residence-etudiants-le-vesinet-medicis-arpej",
+  "ville": "Le Vésinet",
+  "cp": "78110",
+  "prix_min": 420.57,
+  "lat": 48.88952,
+  "lon": 2.13699,
+  "page": "https://www.arpej.fr/fr/residence/residence-etudiants-le-vesinet-medicis-arpej/",
+  "jeunes_actifs": false
+ },
+ {
+  "nom": "frida-kahlo-residence-etudiante-montreuil",
+  "ville": "Montreuil",
+  "cp": "93100",
+  "prix_min": 555.71,
+  "lat": 48.86233,
+  "lon": 2.44287,
+  "page": "https://www.arpej.fr/fr/residence/frida-kahlo-residence-etudiante-montreuil/",
+  "jeunes_actifs": false
+ },
+ {
+  "nom": "le-rodrigue-residence-etudiante-montreuil",
+  "ville": "Montreuil",
+  "cp": "93100",
+  "prix_min": 565.78,
+  "lat": 48.85222,
+  "lon": 2.41698,
+  "page": "https://www.arpej.fr/fr/residence/le-rodrigue-residence-etudiante-montreuil/",
+  "jeunes_actifs": false
+ },
+ {
+  "nom": "wangari-maathai-residence-etudiante-montreuil",
+  "ville": "Montreuil",
+  "cp": "93100",
+  "prix_min": 657.56,
+  "lat": 48.85474,
+  "lon": 2.43206,
+  "page": "https://www.arpej.fr/fr/residence/wangari-maathai-residence-etudiante-montreuil/",
+  "jeunes_actifs": false
+ },
+ {
+  "nom": "residence-etudiante-georges-melies-montreuil",
+  "ville": "Montreuil",
+  "cp": "93100",
+  "prix_min": 523.42,
+  "lat": 48.86632,
+  "lon": 2.43913,
+  "page": "https://www.arpej.fr/fr/residence/residence-etudiante-georges-melies-montreuil/",
+  "jeunes_actifs": false
+ },
+ {
+  "nom": "chanzy-residence-etudiante-nanterre",
+  "ville": "Nanterre",
+  "cp": "92000",
+  "prix_min": 482.63,
+  "lat": 48.88841,
+  "lon": 2.19675,
+  "page": "https://www.arpej.fr/fr/residence/chanzy-residence-etudiante-nanterre/",
+  "jeunes_actifs": false
+ },
+ {
+  "nom": "neuilly-roule-residence-etudiante-neuilly-sur-seine",
+  "ville": "Neuilly-sur-Seine",
+  "cp": "92200",
+  "prix_min": 516.3,
+  "lat": 48.88199,
+  "lon": 2.27881,
+  "page": "https://www.arpej.fr/fr/residence/neuilly-roule-residence-etudiante-neuilly-sur-seine/",
+  "jeunes_actifs": false
+ },
+ {
+  "nom": "cite-de-la-musique-residence-etudiante-paris",
+  "ville": "Paris 19e",
+  "cp": "75019",
+  "prix_min": 403.12,
+  "lat": 48.8894,
+  "lon": 2.39417,
+  "page": "https://www.arpej.fr/fr/residence/cite-de-la-musique-residence-etudiante-paris/",
+  "jeunes_actifs": false
+ },
+ {
+  "nom": "residence-etudiante-paris-poissonnier",
+  "ville": "Paris 18e",
+  "cp": "75018",
+  "prix_min": 410.56,
+  "lat": 48.89237,
+  "lon": 2.35269,
+  "page": "https://www.arpej.fr/fr/residence/residence-etudiante-paris-poissonnier/",
+  "jeunes_actifs": false
+ },
+ {
+  "nom": "du-conservatoire-residence-etudiante-paris",
+  "ville": "Paris 19e",
+  "cp": "75019",
+  "prix_min": 575.32,
+  "lat": 48.88895,
+  "lon": 2.39006,
+  "page": "https://www.arpej.fr/fr/residence/du-conservatoire-residence-etudiante-paris/",
+  "jeunes_actifs": false
+ },
+ {
+  "nom": "etudiante-eole-paris",
+  "ville": "Paris 19e",
+  "cp": "75019",
+  "prix_min": 412.49,
+  "lat": 48.89631,
+  "lon": 2.37129,
+  "page": "https://www.arpej.fr/fr/residence/etudiante-eole-paris/",
+  "jeunes_actifs": false
+ },
+ {
+  "nom": "residence-etudiants-paris-5eme-arrondissement-scipion-arpej",
+  "ville": "Paris 5e",
+  "cp": "75005",
+  "prix_min": 363.83,
+  "lat": 48.83859,
+  "lon": 2.35341,
+  "page": "https://www.arpej.fr/fr/residence/residence-etudiants-paris-5eme-arrondissement-scipion-arpej/",
+  "jeunes_actifs": false
+ },
+ {
+  "nom": "camille-see-residence-etudiante-saint-denis",
+  "ville": "Saint-Denis",
+  "cp": "93200",
+  "prix_min": 470.23,
+  "lat": 48.93615,
+  "lon": 2.344,
+  "page": "https://www.arpej.fr/fr/residence/camille-see-residence-etudiante-saint-denis/",
+  "jeunes_actifs": false
+ },
+ {
+  "nom": "residence-etudiante-george-sand-saint-denis",
+  "ville": "Saint-Denis",
+  "cp": "93200",
+  "prix_min": 520.45,
+  "lat": 48.9142,
+  "lon": 2.36513,
+  "page": "https://www.arpej.fr/fr/residence/residence-etudiante-george-sand-saint-denis/",
+  "jeunes_actifs": false
+ },
+ {
+  "nom": "residence-etudiants-saint-denis-mahsa-jina-amini-arpej",
+  "ville": "Saint-Denis",
+  "cp": "93200",
+  "prix_min": 492.79,
+  "lat": 48.92455,
+  "lon": 2.3378,
+  "page": "https://www.arpej.fr/fr/residence/residence-etudiants-saint-denis-mahsa-jina-amini-arpej/",
+  "jeunes_actifs": false
+ },
+ {
+  "nom": "jean-paul-goude-residence-etudiante-saint-mande",
+  "ville": "Saint-Mandé",
+  "cp": "94160",
+  "prix_min": 506.86,
+  "lat": 48.84359,
+  "lon": 2.42352,
+  "page": "https://www.arpej.fr/fr/residence/jean-paul-goude-residence-etudiante-saint-mande/",
+  "jeunes_actifs": false
+ },
+ {
+  "nom": "saint-mande-residence-etudiante-paris",
+  "ville": "Saint-Mandé",
+  "cp": "94160",
+  "prix_min": 698.02,
+  "lat": 48.84708,
+  "lon": 2.41691,
+  "page": "https://www.arpej.fr/fr/residence/saint-mande-residence-etudiante-paris/",
+  "jeunes_actifs": false
+ },
+ {
+  "nom": "residence-etudiante-saint-mande",
+  "ville": "Saint-Mandé",
+  "cp": "94160",
+  "prix_min": 726.48,
+  "lat": 48.84711,
+  "lon": 2.41715,
+  "page": "https://www.arpej.fr/fr/residence/residence-etudiante-saint-mande/",
+  "jeunes_actifs": false
+ },
+ {
+  "nom": "saint-ouen",
+  "ville": "Saint-Ouen",
+  "cp": "93400",
+  "prix_min": 605.26,
+  "lat": 48.90694,
+  "lon": 2.3234,
+  "page": "https://www.arpej.fr/fr/residence/saint-ouen/",
+  "jeunes_actifs": false
+ },
+ {
+  "nom": "residence-etudiante-suresnes",
+  "ville": "Suresnes",
+  "cp": "92150",
+  "prix_min": 555.63,
+  "lat": 48.878,
+  "lon": 2.2321,
+  "page": "https://www.arpej.fr/fr/residence/residence-etudiante-suresnes/",
+  "jeunes_actifs": false
+ },
+ {
+  "nom": "etudiante-suresnes",
+  "ville": "Suresnes",
+  "cp": "92150",
+  "prix_min": 602.48,
+  "lat": 48.86102,
+  "lon": 2.22306,
+  "page": "https://www.arpej.fr/fr/residence/etudiante-suresnes/",
+  "jeunes_actifs": false
+ },
+ {
+  "nom": "campuseo-partie-pour-etudiants-residence-etudiante-velizy-villacoublay",
+  "ville": "Vélizy-Villacoublay",
+  "cp": "78140",
+  "prix_min": 583.34,
+  "lat": 48.78116,
+  "lon": 2.21355,
+  "page": "https://www.arpej.fr/fr/residence/campuseo-partie-pour-etudiants-residence-etudiante-velizy-villacoublay/",
+  "jeunes_actifs": false
+ },
+ {
+  "nom": "millenium-residence-etudiante-velizy-villacoublay",
+  "ville": "Vélizy-Villacoublay",
+  "cp": "78140",
+  "prix_min": 549.81,
+  "lat": 48.78008,
+  "lon": 2.20587,
+  "page": "https://www.arpej.fr/fr/residence/millenium-residence-etudiante-velizy-villacoublay/",
+  "jeunes_actifs": false
+ },
+ {
+  "nom": "victor-guerreau-residence-etudiante-velizy-villacoublay",
+  "ville": "Vélizy-Villacoublay",
+  "cp": "78140",
+  "prix_min": 449.47,
+  "lat": 48.78097,
+  "lon": 2.21209,
+  "page": "https://www.arpej.fr/fr/residence/victor-guerreau-residence-etudiante-velizy-villacoublay/",
+  "jeunes_actifs": false
+ },
+ {
+  "nom": "pierre-gilles-de-gennes-residence-etudiante-villejuif",
+  "ville": "Villejuif",
+  "cp": "94800",
+  "prix_min": 609.8,
+  "lat": 48.79879,
+  "lon": 2.35638,
+  "page": "https://www.arpej.fr/fr/residence/pierre-gilles-de-gennes-residence-etudiante-villejuif/",
+  "jeunes_actifs": false
+ },
+ {
+  "nom": "aubert-residence-etudiante-vincennes",
+  "ville": "Vincennes",
+  "cp": "94300",
+  "prix_min": 457.17,
+  "lat": 48.84726,
+  "lon": 2.42675,
+  "page": "https://www.arpej.fr/fr/residence/aubert-residence-etudiante-vincennes/",
+  "jeunes_actifs": false
+ },
+ {
+  "nom": "renon-residence-etudiante-vincennes",
+  "ville": "Vincennes",
+  "cp": "94300",
+  "prix_min": 420.04,
+  "lat": 48.84649,
+  "lon": 2.42439,
+  "page": "https://www.arpej.fr/fr/residence/renon-residence-etudiante-vincennes/",
+  "jeunes_actifs": false
+ }
+]

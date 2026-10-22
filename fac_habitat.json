@@ -1,0 +1,258 @@
+[
+ {
+  "nom": "L'Arche",
+  "adresse": "14 Rue De Bezons 92400 Courbevoie",
+  "lat": 48.893033,
+  "lon": 2.252957,
+  "url_dispo": "https://w2.fac-habitat.com/L-Arche/p/4/21/6557/version=iframe_reservation",
+  "page": "https://logement.smerra.fr/residence-etudiante/fac-habitat-larche/"
+ },
+ {
+  "nom": "Pablo Picasso",
+  "adresse": "67 Avenue Pablo Picasso 92000 Nanterre",
+  "lat": 48.890394,
+  "lon": 2.218978,
+  "url_dispo": "https://w2.fac-habitat.com/Pablo-Picasso/p/4/21/31/version=iframe_reservation",
+  "page": "https://logement.smerra.fr/residence-etudiante/fac-habitat-pablo-picasso/"
+ },
+ {
+  "nom": "Les Trois Arpents",
+  "adresse": "56 Rue des Couvaloux 92150 Suresnes",
+  "lat": 48.862884,
+  "lon": 2.218858,
+  "url_dispo": "https://w2.fac-habitat.com/Les-Trois-Arpents/p/4/21/32/version=iframe_reservation",
+  "page": "https://logement.smerra.fr/residence-etudiante/fac-habitat-les-trois-arpents/"
+ },
+ {
+  "nom": "Emergence",
+  "adresse": "13 Allée des Passiflores 92270 Bois-Colombes",
+  "lat": 48.926151,
+  "lon": 2.273158,
+  "url_dispo": "https://w2.fac-habitat.com/Emergence/p/4/21/10902/version=iframe_reservation",
+  "page": "https://logement.smerra.fr/residence-etudiante/fac-habitat-emergence/"
+ },
+ {
+  "nom": "Ecrivains",
+  "adresse": "2 Rue Jean Anouilh 78420 Carrières-sur-Seine",
+  "lat": 48.913497,
+  "lon": 2.17748,
+  "url_dispo": "https://w2.fac-habitat.com/Ecrivains/p/4/21/12681/version=iframe_reservation",
+  "page": "https://logement.smerra.fr/residence-etudiante/fac-habitat-ecrivains/"
+ },
+ {
+  "nom": "Belle Isle",
+  "adresse": "3 Rue de Paris 78600 Maisons-Laffitte",
+  "lat": 48.945108,
+  "lon": 2.155882,
+  "url_dispo": "https://w2.fac-habitat.com/Belle-Isle/p/4/21/51/version=iframe_reservation",
+  "page": "https://logement.smerra.fr/residence-etudiante/fac-habitat-belle-isle/"
+ },
+ {
+  "nom": "Auguste Rodin",
+  "adresse": "42 Rue de Sèvres 75007 Paris",
+  "lat": 48.849105,
+  "lon": 2.321638,
+  "url_dispo": "https://w2.fac-habitat.com/Auguste-Rodin/p/4/21/33/version=iframe_reservation/new",
+  "page": "https://logement.smerra.fr/residence-etudiante/fac-habitat-auguste-rodin/"
+ },
+ {
+  "nom": "Parc Avenue",
+  "adresse": "6 Rue Kateb Yacine 93400 Saint-Ouen-sur-Seine",
+  "lat": 48.904668,
+  "lon": 2.323756,
+  "url_dispo": "https://w2.fac-habitat.com/Parc-Avenue/p/4/21/6609/version=iframe_reservation",
+  "page": "https://logement.smerra.fr/residence-etudiante/fac-habitat-parc-avenue/"
+ },
+ {
+  "nom": "Julie Victoire Daubié",
+  "adresse": "20 Rue Pierre Valette 92240 Malakoff",
+  "lat": 48.815634,
+  "lon": 2.303911,
+  "url_dispo": "https://w2.fac-habitat.com/Julie-Victoire-Daubie/p/4/20/10629/version=iframe_reservation",
+  "page": "https://logement.smerra.fr/residence-etudiante/julie-victoire-daubie/"
+ },
+ {
+  "nom": "Hortense Wild",
+  "adresse": "4bis Avenue de Verdun 92320 Châtillon",
+  "lat": 48.803856,
+  "lon": 2.287771,
+  "url_dispo": "https://w2.fac-habitat.com/Hortense-Wild/p/4/20/19074/version=iframe_reservation",
+  "page": "https://logement.smerra.fr/residence-etudiante/fac-habitat-hortense-wild/"
+ },
+ {
+  "nom": "Adélaïde",
+  "adresse": "68 Boulevard du Maréchal Joffre 92340 Bourg-la-Reine",
+  "lat": 48.78051,
+  "lon": 2.313723,
+  "url_dispo": "https://w2.fac-habitat.com/Adelaide/p/4/20/15409/version=iframe_reservation/new/",
+  "page": "https://logement.smerra.fr/residence-etudiante/fac-habitat-adelaide/"
+ },
+ {
+  "nom": "Edouard Depreux",
+  "adresse": "58 Boulevard Desgranges 92330 Sceaux",
+  "lat": 48.781562,
+  "lon": 2.284394,
+  "url_dispo": "https://w2.fac-habitat.com/Edouard-Depreux/p/4/20/6271/version=iframe_reservation",
+  "page": "https://logement.smerra.fr/residence-etudiante/fac-habitat-edouard-depreux/"
+ },
+ {
+  "nom": "Erwin Guldner",
+  "adresse": "4 Avenue Jules Guesde 92330 Sceaux",
+  "lat": 48.781922,
+  "lon": 2.281626,
+  "url_dispo": "https://w2.fac-habitat.com/Erwin-Guldner/p/4/20/10627/version=iframe_reservation",
+  "page": "https://logement.smerra.fr/residence-etudiante/erwin-guldner/"
+ },
+ {
+  "nom": "Pierre Ringenbach",
+  "adresse": "1 Chemin Jean-Claude-Républicain-Arnoux 92330 Sceaux",
+  "lat": 48.781264,
+  "lon": 2.299626,
+  "url_dispo": "https://w2.fac-habitat.com/Pierre-Ringenbach/p/4/20/10630/version=iframe_reservation",
+  "page": "https://logement.smerra.fr/residence-etudiante/fac-habitat-pierre-ringenbach/"
+ },
+ {
+  "nom": "Quai de la Loire",
+  "adresse": "Quai de la Loire 75019 Paris",
+  "lat": 48.885576,
+  "lon": 2.375545,
+  "url_dispo": "https://w2.fac-habitat.com/Quai-de-la-Loire/p/4/21/9207/version=iframe_reservation",
+  "page": "https://logement.smerra.fr/residence-etudiante/fac-habitat-quai-de-la-loire/"
+ },
+ {
+  "nom": "MIS pour étudiants",
+  "adresse": "16 Rue Théroigne de Méricourt 75013 Paris",
+  "lat": 48.821224,
+  "lon": 2.376813,
+  "url_dispo": "https://w2.fac-habitat.com/MIS-pour-etudiants/p/4/20/8205/version=iframe_reservation",
+  "page": "https://logement.smerra.fr/residence-etudiante/fac-habitat-mis-pour-etudiants/"
+ },
+ {
+  "nom": "Alice Guy",
+  "adresse": "2 Rue Paul Bert 94160 Saint-Mandé",
+  "lat": 48.842189,
+  "lon": 2.414827,
+  "url_dispo": "https://w2.fac-habitat.com/Alice-Guy/p/4/21/19250/version=iframe_reservation",
+  "page": "https://logement.smerra.fr/residence-etudiante/fac-habitat-alice-guy/"
+ },
+ {
+  "nom": "Le Studio",
+  "adresse": "21 Rue Proudhon 93210 Saint-Denis",
+  "lat": 48.906539,
+  "lon": 2.361905,
+  "url_dispo": "https://w2.fac-habitat.com/Le-Studio/p/4/21/7613/version=iframe_reservation",
+  "page": "https://logement.smerra.fr/residence-etudiante/fac-habitat-le-studio/"
+ },
+ {
+  "nom": "Fourmont",
+  "adresse": "2 Impasse Etienne Fourmont 95220 Herblay-sur-Seine",
+  "lat": 48.992745,
+  "lon": 2.158009,
+  "url_dispo": "https://w2.fac-habitat.com/Fourmont/p/4/21/18397/version=iframe_reservation",
+  "page": "https://logement.smerra.fr/residence-etudiante/fac-habitat-fourmont/"
+ },
+ {
+  "nom": "Edouard Martel",
+  "adresse": "50 Avenue de Verdun 95300 Pontoise",
+  "lat": 49.041871,
+  "lon": 2.089844,
+  "url_dispo": "https://w2.fac-habitat.com/Edouard-Martel/p/4/21/9626/version=iframe_reservation",
+  "page": "https://logement.smerra.fr/residence-etudiante/fac-habitat-edouard-martel/"
+ },
+ {
+  "nom": "Cesaria Evora",
+  "adresse": "1 Rue Cesaria Evora 93300 Aubervilliers",
+  "lat": 48.915778,
+  "lon": 2.368893,
+  "url_dispo": "https://w2.fac-habitat.com/Cesaria-Evora/p/4/21/40/version=iframe_reservation",
+  "page": "https://logement.smerra.fr/residence-etudiante/fac-habitat-cesaria-evora/"
+ },
+ {
+  "nom": "Lucie Aubrac",
+  "adresse": "Rue de la Nouvelle France 93300 Aubervilliers",
+  "lat": 48.913368,
+  "lon": 2.386952,
+  "url_dispo": "https://w2.fac-habitat.com/Lucie-Aubrac/p/4/21/9634/version=iframe_reservation",
+  "page": "https://logement.smerra.fr/residence-etudiante/fac-habitat-lucie-aubrac/"
+ },
+ {
+  "nom": "Philosophia",
+  "adresse": "167 Avenue Jean Jaurès 93300 Aubervilliers",
+  "lat": 48.91027,
+  "lon": 2.398993,
+  "url_dispo": "https://w2.fac-habitat.com/Philosophia/p/4/21/7614/version=iframe_reservation",
+  "page": "https://logement.smerra.fr/residence-etudiante/fac-habitat-philosophia/"
+ },
+ {
+  "nom": "Jean Jaurès",
+  "adresse": "66 Avenue Jean Jaurès 94200 Ivry-sur-Seine",
+  "lat": 48.809848,
+  "lon": 2.403531,
+  "url_dispo": "https://w2.fac-habitat.com/Jean-Jaures/p/4/20/7612/version=iframe_reservation",
+  "page": "https://logement.smerra.fr/residence-etudiante/fac-habitat-jean-jaures/"
+ },
+ {
+  "nom": "Val de Bièvre",
+  "adresse": "4 Mail des Tilleuls 94250 Gentilly",
+  "lat": 48.814755,
+  "lon": 2.332153,
+  "url_dispo": "https://w2.fac-habitat.com/Val-de-Bievre/p/4/20/7611/version=iframe_reservation",
+  "page": "https://logement.smerra.fr/residence-etudiante/fac-habitat-val-de-bievre/"
+ },
+ {
+  "nom": "Georges Mathé",
+  "adresse": "3 Parvis du Professeur Georges Mathé 94800 Villejuif",
+  "lat": 48.794863,
+  "lon": 2.359887,
+  "url_dispo": "https://w2.fac-habitat.com/Georges-Mathe/p/4/21/50/version=iframe_reservation",
+  "page": "https://logement.smerra.fr/residence-etudiante/fac-habitat-georges-mathe/"
+ },
+ {
+  "nom": "Logifac Condorcet",
+  "adresse": "1 Rue des 21 Appelés 93300 Aubervilliers",
+  "lat": 48.906146,
+  "lon": 2.376004,
+  "url_dispo": "https://w2.logifac.fr/Condorcet/p/4/50/15595/version=iframe_reservation",
+  "page": "https://logement.smerra.fr/residence-etudiante/logifac-condorcet/"
+ },
+ {
+  "nom": "Logifac Porte Montmartre",
+  "adresse": "35 Rue du Docteur Babinski 93400 Saint-Ouen-sur-Seine",
+  "lat": 48.901109,
+  "lon": 2.333917,
+  "url_dispo": "https://w2.logifac.fr/Porte-Montmartre/p/4/50/15606/version=iframe_reservation",
+  "page": "https://logement.smerra.fr/residence-etudiante/logifac-porte-de-montmartre/"
+ },
+ {
+  "nom": "Logifac Saint Jacques",
+  "adresse": "16 Rue Jean-Claude Arnould 75014 Paris",
+  "lat": 48.832463,
+  "lon": 2.334266,
+  "url_dispo": "https://w2.logifac.fr/Saint-Jacques/p/4/50/15612/version=iframe_reservation",
+  "page": "https://logement.smerra.fr/residence-etudiante/logifac-saint-jacques/"
+ },
+ {
+  "nom": "Logifac Patio Bastille",
+  "adresse": "31 Passage Thiéré 75011 Paris",
+  "lat": 48.854346,
+  "lon": 2.373162,
+  "url_dispo": "https://w2.logifac.fr/Patio-Bastille/p/4/50/15605/version=iframe_reservation",
+  "page": "https://logement.smerra.fr/residence-etudiante/logifac-patio-bastille/"
+ },
+ {
+  "nom": "Logifac Saint Mandeen",
+  "adresse": "12 Rue Mongenot 75012 Paris",
+  "lat": 48.843288,
+  "lon": 2.415062,
+  "url_dispo": "https://w2.logifac.fr/Saint-Mandeen/p/4/50/15614/version=iframe_reservation",
+  "page": "https://logement.smerra.fr/residence-etudiante/logifac-saint-mandeen/"
+ },
+ {
+  "nom": "Logifac Le Palatino",
+  "adresse": "36 Allée Eric Chabeur 75013 Paris",
+  "lat": 48.820589,
+  "lon": 2.361876,
+  "url_dispo": "https://w2.logifac.fr/Le-Palatino/p/4/50/6749/version=iframe_reservation",
+  "page": "https://logement.smerra.fr/residence-etudiante/logifac-le-palatino/"
+ }
+]
