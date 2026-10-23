@@ -38,7 +38,8 @@ except Exception:  # pragma: no cover
 import reglages as R
 
 ICI = Path(__file__).resolve().parent
-DATA = ICI / "data"
+# Les fichiers de données peuvent être dans un dossier "data/" ou à côté de bot.py
+DATA = ICI / "data" if (ICI / "data" / "gares.json").exists() else ICI
 ETAT = ICI / "etat.json"
 
 UA = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
