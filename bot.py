@@ -264,10 +264,29 @@ def crous_offre(item, outil):
     }
 
 
+def crous_outils_actuels():
+    """Numéros d'outils CROUS en cours (lus sur le site), + ceux des réglages."""
+    outils = list(R.CROUS_OUTILS)
+    try:
+        code, txt = http("https://trouverunlogement.lescrous.fr/api/global/context",
+                         headers={"Accept": "application/json"})
+        ctx = json.loads(txt).get("tools") or {}
+        for t in ctx.values():
+            if isinstance(t, dict) and t.get("isEnabled") and not t.get("isLocked") \
+                    and t.get("mechanism") in ("residual", "direct_allocation", "standard") \
+                    and t.get("id") not in outils:
+                outils.append(t["id"])
+                log(f"CROUS : nouvel outil détecté automatiquement ({t['id']}, {t.get('mechanism')})")
+    except Exception as e:
+        log(f"CROUS : liste des outils non lue ({e}), j'utilise {outils}")
+    return outils
+
+
 def source_crous():
     offres = []
     erreurs = []
-    for outil in R.CROUS_OUTILS:
+    outils = crous_outils_actuels()
+    for outil in outils:
         try:
             for it in crous_items(outil):
                 o = crous_offre(it, outil)
@@ -275,7 +294,7 @@ def source_crous():
                     offres.append(o)
         except Exception as e:
             erreurs.append(f"outil {outil} : {e}")
-    if erreurs and len(erreurs) == len(R.CROUS_OUTILS):
+    if erreurs and len(erreurs) == len(outils):
         raise RuntimeError(" ; ".join(erreurs))
     for e in erreurs:
         log(f"CROUS (partiel) — {e}")
@@ -404,6 +423,64 @@ def source_arpej():
         })
     if ok == 0:
         raise RuntimeError("aucune page ARPEJ lisible")
+    return offres
+
+
+# ---------------------------------------------------------------------------
+# Source 3 bis : Stud'City (AREF) — "Complet jusqu'au ..." ou pré-réservation ouverte
+# ---------------------------------------------------------------------------
+STUDCITY = [
+    {"nom": "Stud'City La Colline de l'Arche", "adresse": "49 rue des Étudiants 92400 Courbevoie",
+     "lat": 48.898253, "lon": 2.233361, "slug": "la-colline-de-l-arche"},
+    {"nom": "Stud'City Paris Asnières", "adresse": "11 rue Pierre Curie 92600 Asnières-sur-Seine",
+     "lat": 48.918861, "lon": 2.313906, "slug": "paris-asnieres"},
+    {"nom": "Stud'City Paris Meudon", "adresse": "1 rue Mohammed Dib 92360 Meudon",
+     "lat": 48.783204, "lon": 2.227026, "slug": "paris-meudon"},
+]
+STUDCITY_URL = "https://www.studcity.fr/aref/residences/{slug}/"
+
+
+def parse_studcity(page_html):
+    """Renvoie {"complet": bool, "jusqua": texte, "prix": loyer mini, "lien": pré-réservation}."""
+    if "Pré-réservez votre logement" not in page_html and "is-complet" not in page_html:
+        raise ValueError("page Stud'City inattendue")
+    m = re.search(r'<p class="is-complet">\s*(.*?)\s*</p>', page_html, re.S)
+    prix = re.search(r'id="tarifs".*?(\d{3})\s*à\s*\d{3}\s*€', page_html, re.S) or \
+        re.search(r'(\d{3})\s*à\s*\d{3}\s*€', page_html)
+    lien = re.search(r'href="([^"]*reservation-locataire[^"]*)"', page_html)
+    return {
+        "complet": bool(m),
+        "jusqua": _txt(m.group(1)) if m else "",
+        "prix": int(prix.group(1)) if prix else None,
+        "lien": ("https://www.studcity.fr/" + lien.group(1).lstrip("/")) if lien and not
+                lien.group(1).startswith("http") else (lien.group(1) if lien else None),
+    }
+
+
+def source_studcity():
+    offres, ok = [], 0
+    for r in STUDCITY:
+        if not proche(r["lat"], r["lon"]):
+            continue
+        url = STUDCITY_URL.format(slug=r["slug"])
+        try:
+            info = parse_studcity(get(url))
+            ok += 1
+        except Exception as e:
+            log(f"Stud'City {r['nom']} illisible : {e}")
+            continue
+        if info["complet"]:
+            continue
+        offres.append({
+            "cle": f"studcity:{r['slug']}",
+            "source": "Stud'City",
+            "titre": f"{r['nom']} — plus affichée complète, pré-réservation ouverte",
+            "adresse": r["adresse"], "prix": info["prix"],
+            "details": "loyer « à partir de », T1",
+            "lien": url, "lat": r["lat"], "lon": r["lon"], "statut": "Disponible",
+        })
+    if ok == 0 and any(proche(r["lat"], r["lon"]) for r in STUDCITY):
+        raise RuntimeError("aucune page Stud'City lisible")
     return offres
 
 
@@ -623,6 +700,7 @@ SOURCES = [
     ("CROUS", "SURVEILLER_CROUS", source_crous),
     ("Fac-Habitat", "SURVEILLER_FAC_HABITAT", source_fac_habitat),
     ("ARPEJ", "SURVEILLER_ARPEJ", source_arpej),
+    ("Stud'City", "SURVEILLER_STUDCITY", source_studcity),
     ("Pages en plus", None, source_pages),
 ]
 
@@ -708,11 +786,11 @@ def passage(simulation=False):
         deja_txt = "\n".join(lignes_txt) if lignes_txt else "Rien pour l'instant dans tes critères."
         envoyer("✅ Ton bot logement est lancé",
                 "✅ <b>Ton bot logement est lancé !</b>\n"
-                f"Je surveille CROUS, Fac-Habitat, ARPEJ et ALJT autour de l'ESILV "
+                f"Je surveille CROUS, Fac-Habitat, ARPEJ, Stud'City et ALJT autour de l'ESILV "
                 f"(≤ {R.TRAJET_MAX_MIN} min, ≤ {R.LOYER_MAX} €).\n"
                 "Je t'écris dès qu'un NOUVEAU logement apparaît.\n\n"
                 f"<b>Déjà disponible en ce moment :</b>\n{deja}",
-                "Ton bot logement est lancé ! Je surveille CROUS, Fac-Habitat, ARPEJ et ALJT "
+                "Ton bot logement est lancé ! Je surveille CROUS, Fac-Habitat, ARPEJ, Stud'City et ALJT "
                 f"autour de l'ESILV (≤ {R.TRAJET_MAX_MIN} min, ≤ {R.LOYER_MAX} €).\n\n"
                 f"Déjà disponible en ce moment :\n{deja_txt}",
                 simulation=simulation)
