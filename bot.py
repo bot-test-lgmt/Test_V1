@@ -491,6 +491,9 @@ def ntfy(titre, texte, lien=None, urgent=False):
     return True
 
 
+RAPPORT = {"sources": [], "envois": []}
+
+
 def envoyer(titre, texte_tg, texte_mail, html_mail=None, lien=None, urgent=False,
             simulation=False):
     """Envoie sur tous les canaux configurés. Lève une erreur si AUCUN n'a marché."""
@@ -508,11 +511,14 @@ def envoyer(titre, texte_tg, texte_mail, html_mail=None, lien=None, urgent=False
             essais += 1
             reussis += 1
             log(f"  ✔ {nom} envoyé")
+            RAPPORT["envois"].append((titre, nom, "✅ envoyé"))
         except Exception as e:
             essais += 1
             log(f"  ✘ {nom} a échoué : {e}")
+            RAPPORT["envois"].append((titre, nom, f"❌ échec : {e}"))
     if essais == 0:
         log("  (aucun canal configuré — rien n'est envoyé)")
+        RAPPORT["envois"].append((titre, "—", "⚠️ aucun canal configuré"))
     elif reussis == 0:
         raise RuntimeError("aucun canal de notification n'a fonctionné")
 
@@ -622,12 +628,14 @@ SOURCES = [
 
 
 def passage(simulation=False):
+    RAPPORT["sources"].clear()
     etat = charger_etat()
     sources_etat = etat.setdefault("sources", {})
     stats = etat.setdefault("stats", {"passages": 0, "alertes": 0})
     stats["passages"] += 1
     resume_actuel = []          # pour le message de bienvenue
     a_envoyer = []
+    dispo_actuelles = []        # toutes les offres dans tes critères en ce moment
 
     for nom, reglage, fonction in SOURCES:
         if reglage and not getattr(R, reglage, True):
@@ -640,6 +648,7 @@ def passage(simulation=False):
         except Exception as e:
             s["echecs"] = s.get("echecs", 0) + 1
             log(f"{nom} : ÉCHEC ({s['echecs']} d'affilée) — {e}")
+            RAPPORT["sources"].append({"nom": nom, "ok": False, "erreur": str(e)[:150]})
             if s["echecs"] == SEUIL_PANNE and not simulation:
                 envoyer(f"⚠️ {nom} ne répond plus",
                         f"⚠️ <b>{esc(nom)}</b> ne répond plus depuis ~1 h.\n"
@@ -656,6 +665,9 @@ def passage(simulation=False):
         premiere_fois = not s.get("initialise")
         nouvelles = nouveautes(s, offres)
         s["initialise"] = True
+        RAPPORT["sources"].append({"nom": nom, "ok": True, "en_ligne": len(brutes),
+                                   "criteres": len(offres), "nouvelles": len(nouvelles)})
+        dispo_actuelles.extend(offres)
         if premiere_fois and not etat.get("bienvenue"):
             resume_actuel.append((nom, offres))
         else:
@@ -667,6 +679,8 @@ def passage(simulation=False):
         try:
             en_ligne = aljt_en_ligne()
             log(f"ALJT : {'EN LIGNE' if en_ligne else 'toujours en maintenance'}")
+            RAPPORT["sources"].append({"nom": "ALJT", "ok": True,
+                                       "info": "en ligne" if en_ligne else "toujours en maintenance"})
             if en_ligne and a.get("en_ligne") is False:
                 envoyer("🔔 Le site ALJT est de retour !",
                         "🔔 <b>Le site ALJT est de nouveau en ligne !</b>\n"
@@ -678,6 +692,7 @@ def passage(simulation=False):
             a["en_ligne"] = en_ligne
         except Exception as e:
             log(f"ALJT : injoignable ({e})")
+            RAPPORT["sources"].append({"nom": "ALJT", "ok": False, "erreur": str(e)[:150]})
 
     # Message de bienvenue (une seule fois)
     if resume_actuel and not etat.get("bienvenue"):
@@ -712,34 +727,122 @@ def passage(simulation=False):
                 urgent=bool(o.get("a_pied") or o.get("super_prix") or o.get("defense")), simulation=simulation)
         stats["alertes"] += 1
 
-    # Petit résumé chaque dimanche soir (preuve que tout tourne)
+    # Résumé quotidien (preuve que tout tourne + ce qui est dispo en ce moment)
     loc = datetime.now(PARIS)
-    semaine = loc.strftime("%G-%V")
-    if loc.weekday() == 6 and loc.hour >= 19 and etat.get("dernier_resume") != semaine:
-        envoyer("📊 Bot logement : résumé de la semaine",
-                f"📊 <b>Toujours en veille ✅</b>\n{stats['passages']} vérifications et "
-                f"{stats['alertes']} alerte(s) depuis le dernier résumé.",
-                f"Toujours en veille. {stats['passages']} vérifications et {stats['alertes']} "
-                "alerte(s) depuis le dernier résumé.", simulation=simulation)
-        etat["dernier_resume"] = semaine
-        etat["stats"] = {"passages": 0, "alertes": 0}
+    jour = loc.strftime("%Y-%m-%d")
+    if (getattr(R, "RESUME_QUOTIDIEN", True) and loc.hour >= getattr(R, "HEURE_RESUME", 20)
+            and etat.get("dernier_resume_jour") != jour):
+        envoyer_resume(stats, dispo_actuelles, simulation)
+        if not simulation:
+            etat["dernier_resume_jour"] = jour
+            etat["stats"] = {"passages": 0, "alertes": 0}
 
     etat["dernier_passage"] = maintenant().isoformat()
     if not simulation:
         sauver_etat(etat)
+    ecrire_rapport_github()
+
+
+def envoyer_resume(stats, dispo, simulation=False):
+    sante_tg, sante_txt = [], []
+    for r in RAPPORT["sources"]:
+        etat_txt = ("✅ " + (r.get("info") or f"{r.get('en_ligne', 0)} en ligne, "
+                              f"{r.get('criteres', 0)} dans tes critères")) if r["ok"] else "❌ ne répond pas"
+        sante_tg.append(f"• {esc(r['nom'])} : {esc(etat_txt)}")
+        sante_txt.append(f"- {r['nom']} : {etat_txt}")
+    dispo = sorted(dispo, key=lambda o: o.get("prix") or 9999)
+    if dispo:
+        lignes_tg = [f"• <b>{o['prix'] or '?'} €</b> — {esc(o['titre'])} "
+                     f"({esc(o['trajet_txt'].split('(')[0].strip())})\n  {esc(o['lien'])}"
+                     for o in dispo[:8]]
+        lignes_txt = [f"- {o['prix'] or '?'} € — {o['titre']} ({o['trajet_txt']})\n  {o['lien']}"
+                      for o in dispo[:8]]
+        dispo_tg = "\n".join(lignes_tg)
+        dispo_txt = "\n".join(lignes_txt)
+    else:
+        dispo_tg = dispo_txt = ("Rien dans tes critères pour l'instant (c'est normal, tout est "
+                                "complet en ce moment). Je te préviens dès que ça bouge.")
+    envoyer("🌙 Bot logement : point du jour",
+            f"🌙 <b>Point du jour — toujours en veille ✅</b>\n"
+            f"{stats['passages']} vérifications depuis hier, {stats['alertes']} alerte(s) envoyée(s).\n\n"
+            f"<b>Les sites :</b>\n" + "\n".join(sante_tg) +
+            f"\n\n<b>Disponible en ce moment dans tes critères :</b>\n{dispo_tg}",
+            f"Point du jour — toujours en veille.\n{stats['passages']} vérifications depuis hier, "
+            f"{stats['alertes']} alerte(s) envoyée(s).\n\nLes sites :\n" + "\n".join(sante_txt) +
+            f"\n\nDisponible en ce moment dans tes critères :\n{dispo_txt}",
+            simulation=simulation)
+
+
+def ecrire_rapport_github():
+    """Écrit un résumé lisible sur la page du passage GitHub (visible sans se connecter)."""
+    chemin = os.environ.get("GITHUB_STEP_SUMMARY")
+    lignes = [f"## 🏠 Veille logement — {datetime.now(PARIS):%d/%m %H:%M}", "",
+              "| Site | État | En ligne | Dans tes critères | Nouveaux |", "|---|---|---|---|---|"]
+    for r in RAPPORT["sources"]:
+        if r["ok"]:
+            lignes.append(f"| {r['nom']} | ✅ {r.get('info', 'répond')} | {r.get('en_ligne', '')} | "
+                          f"{r.get('criteres', '')} | {r.get('nouvelles', '')} |")
+        else:
+            lignes.append(f"| {r['nom']} | ❌ {r['erreur'].replace('|', '/')} | | | |")
+    canaux = [n for n, v in (("Telegram", env("TELEGRAM_TOKEN") and env("TELEGRAM_CHAT_ID")),
+                             ("Email", env("GMAIL_ADRESSE") and env("GMAIL_MOT_DE_PASSE_APP")),
+                             ("ntfy", env("NTFY_TOPIC"))) if v]
+    lignes += ["", f"**Canaux configurés :** {', '.join(canaux) or '⚠️ aucun'}", ""]
+    if RAPPORT["envois"]:
+        lignes += ["**Messages envoyés pendant ce passage :**", ""]
+        lignes += [f"- {canal} : {res} — {titre.replace('|', '/')}" for titre, canal, res in RAPPORT["envois"]]
+    else:
+        lignes.append("_Aucun message envoyé pendant ce passage (rien de nouveau)._")
+    texte = "\n".join(lignes) + "\n"
+    log("\n" + texte)
+    if chemin:
+        try:
+            with open(chemin, "a", encoding="utf-8") as f:
+                f.write(texte)
+        except Exception:
+            pass
+
+
+def diagnostic_telegram():
+    """Explique clairement où en est la configuration Telegram."""
+    token, chat = env("TELEGRAM_TOKEN"), env("TELEGRAM_CHAT_ID")
+    log("----- Diagnostic Telegram -----")
+    if not token:
+        log("❌ Secret TELEGRAM_TOKEN introuvable. Vérifie dans Settings > Secrets and variables > "
+            "Actions qu'il s'appelle EXACTEMENT TELEGRAM_TOKEN (majuscules, sans espace).")
+        return
+    try:
+        code, rep = http(f"https://api.telegram.org/bot{token}/getMe", accepter_erreur=True)
+        moi = json.loads(rep)
+    except Exception as e:
+        log(f"❌ Impossible de joindre Telegram : {e}")
+        return
+    if not moi.get("ok"):
+        log("❌ TELEGRAM_TOKEN refusé par Telegram : le jeton est mal copié. Recopie-le depuis "
+            "@BotFather (tout, y compris la partie avant les deux-points).")
+        return
+    log(f"✅ Jeton OK : ton bot est @{moi['result'].get('username')}")
+    if chat:
+        log(f"✅ TELEGRAM_CHAT_ID est renseigné (finit par …{chat[-3:]}).")
+        return
+    code, rep = http(f"https://api.telegram.org/bot{token}/getUpdates", accepter_erreur=True)
+    ids = sorted({str(u["message"]["chat"]["id"])
+                  for u in json.loads(rep).get("result", []) if u.get("message")})
+    if ids:
+        log("")
+        log(f"👉👉 TON TELEGRAM_CHAT_ID EST : {', '.join(ids)}")
+        log("     Copie ce nombre dans un nouveau secret GitHub nommé TELEGRAM_CHAT_ID.")
+        log("")
+    else:
+        log(f"⚠️ Ton bot @{moi['result'].get('username')} n'a reçu aucun message récent. Ouvre "
+            "Telegram, cherche ce nom, envoie-lui « bonjour », puis relance le test dans "
+            "les 24 h (Telegram n'en garde la trace que 24 h).")
 
 
 def test():
     log("Envoi d'un message de test sur chaque canal configuré…")
+    diagnostic_telegram()
     token, chat = env("TELEGRAM_TOKEN"), env("TELEGRAM_CHAT_ID")
-    if token and not chat:
-        code, rep = http(f"https://api.telegram.org/bot{token}/getUpdates", accepter_erreur=True)
-        ids = sorted({str(u.get("message", {}).get("chat", {}).get("id"))
-                      for u in json.loads(rep).get("result", []) if u.get("message")})
-        if ids:
-            log(f"👉 TON TELEGRAM_CHAT_ID est : {', '.join(ids)}  (copie-le dans les secrets GitHub)")
-        else:
-            log("👉 Aucun message reçu par ton bot : ouvre Telegram, envoie /start à ton bot, puis relance le test.")
     configures = [n for n, v in (("Telegram", token and chat),
                                  ("Email", env("GMAIL_ADRESSE") and env("GMAIL_MOT_DE_PASSE_APP")),
                                  ("ntfy", env("NTFY_TOPIC"))) if v]
@@ -755,5 +858,8 @@ def test():
 
 if __name__ == "__main__":
     if "--test" in sys.argv or env("MODE_TEST").lower() == "true":
+        log("MODE TEST activé")
         test()
+    elif env("TELEGRAM_TOKEN") and not env("TELEGRAM_CHAT_ID"):
+        diagnostic_telegram()
     passage(simulation="--simulation" in sys.argv)

@@ -46,6 +46,12 @@ ALERTER_FAC_HABITAT_A_VENIR = True   # prévenir aussi quand c'est "A venir"
 # 47 = phase complémentaire 2026, 44 = attribution au fil de l'eau.
 CROUS_OUTILS = [47, 44]
 
+# --- Point du jour --------------------------------------------------
+# Chaque soir, un message "toujours en veille ✅" avec l'état des sites et
+# ce qui est disponible en ce moment dans tes critères.
+RESUME_QUOTIDIEN = True
+HEURE_RESUME = 20         # heure de Paris (20 = vers 20h)
+
 # --- Pages en plus à surveiller (optionnel) --------------------------
 # Exemple, quand le site ALJT sera revenu :
 # PAGES_EN_PLUS = [
