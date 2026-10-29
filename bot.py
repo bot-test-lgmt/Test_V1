@@ -294,6 +294,7 @@ def source_crous():
                     offres.append(o)
         except Exception as e:
             erreurs.append(f"outil {outil} : {e}")
+    noter("CROUS", verifiees=len(offres))
     if erreurs and len(erreurs) == len(outils):
         raise RuntimeError(" ; ".join(erreurs))
     for e in erreurs:
@@ -345,11 +346,16 @@ def source_fac_habitat():
             continue
         try:
             lignes = parse_fac_habitat(get(r["url_dispo"]))
+            if not lignes:
+                raise ValueError("aucun type de logement trouvé sur la page")
             ok += 1
+            noter("Fac-Habitat", verifiees=1)
         except Exception as e:
             log(f"Fac-Habitat {r['nom']} illisible : {e}")
             continue
         for l in lignes:
+            if l["statut"] != "Complet":
+                noter("Fac-Habitat", dispo=f"{r['nom']} {l['type']} : {l['statut']} ({l['prix'] or '?'} €)")
             if l["statut"] == "Complet":
                 continue
             if l["statut"] == "A venir" and not R.ALERTER_FAC_HABITAT_A_VENIR:
@@ -373,6 +379,15 @@ def source_fac_habitat():
 # ---------------------------------------------------------------------------
 # Source 3 : ARPEJ (fiche de chaque résidence : "N logements disponibles")
 # ---------------------------------------------------------------------------
+def nom_arpej(titre):
+    """'Résidence étudiante à Suresnes - Louis Blériot - ARPEJ' -> 'ARPEJ Louis Blériot'."""
+    morceaux = [m.strip() for m in titre.replace("|", " - ").split(" - ") if m.strip()]
+    morceaux = [m for m in morceaux if m.upper() != "ARPEJ"]
+    if len(morceaux) >= 2:
+        return f"ARPEJ {morceaux[1]}"
+    return morceaux[0] if morceaux else "Résidence ARPEJ"
+
+
 def parse_arpej(page_html):
     m = re.search(r'folder-points__text">\s*Disponibilit[ée]s?\s*</span>\s*'
                   r'<span class="folder-points__figure[^"]*">(.*?)</span>', page_html, re.S)
@@ -388,7 +403,7 @@ def parse_arpej(page_html):
         "nb": nb, "texte": txt,
         "lien_dossier": lien.group(1) if lien else None,
         "prix": round(float(prix.group(1).replace(",", "."))) if prix else None,
-        "nom": _txt(nom.group(1)).split("|")[0].split(" - ")[0].strip() if nom else None,
+        "nom": nom_arpej(_txt(nom.group(1))) if nom else None,
     }
 
 
@@ -403,11 +418,13 @@ def source_arpej():
         try:
             info = parse_arpej(get(r["page"]))
             ok += 1
+            noter("ARPEJ", verifiees=1)
         except Exception as e:
             log(f"ARPEJ {r['nom']} illisible : {e}")
             continue
         if info["nb"] <= 0:
             continue
+        noter("ARPEJ", dispo=f"{info['nom']} ({r['ville']}) : {info['texte']} ({info['prix']} €)")
         offres.append({
             "cle": f"arpej:{r['nom']}",
             "quantite": info["nb"],
@@ -466,11 +483,13 @@ def source_studcity():
         try:
             info = parse_studcity(get(url))
             ok += 1
+            noter("Stud'City", verifiees=1)
         except Exception as e:
             log(f"Stud'City {r['nom']} illisible : {e}")
             continue
         if info["complet"]:
             continue
+        noter("Stud'City", dispo=f"{r['nom']} : pré-réservation ouverte (dès {info['prix']} €)")
         offres.append({
             "cle": f"studcity:{r['slug']}",
             "source": "Stud'City",
@@ -487,11 +506,149 @@ def source_studcity():
 # ---------------------------------------------------------------------------
 # Source 4 : ALJT (site en maintenance au 22/10/2026 -> on guette son retour)
 # ---------------------------------------------------------------------------
-def aljt_en_ligne():
-    code, txt = http(ALJT_URL, accepter_erreur=True)
-    titre = re.search(r"<title>(.*?)</title>", txt, re.S | re.I)
-    titre = titre.group(1).lower() if titre else ""
-    return code == 200 and "maintenance" not in titre
+ALJT_RESIDENCES = [
+ {
+  "slug": "nanterre",
+  "nom": "Nanterre | Jardin de l'Arche",
+  "adresse": "215 Jardin de l'Arche 92000 Nanterre",
+  "prix_min": 434,
+  "lat": 48.89446,
+  "lon": 2.230593
+ },
+ {
+  "slug": "clichy-la-garenne-rose-guerin",
+  "nom": "Clichy | Rose Guérin",
+  "adresse": "1 rue Rose Guérin 92110 Clichy",
+  "prix_min": 438,
+  "lat": 48.907177,
+  "lon": 2.30126
+ },
+ {
+  "slug": "gennevilliers-gisele-halimi-homer",
+  "nom": "Gennevilliers | Gisèle Halimi",
+  "adresse": "5 rue Gisèle Halimi 92230 Gennevilliers",
+  "prix_min": 478,
+  "lat": 48.926054,
+  "lon": 2.295122
+ },
+ {
+  "slug": "gennevilliers-basly",
+  "nom": "Gennevilliers | Basly",
+  "adresse": "13-15 rue Basly 92230 Gennevilliers",
+  "prix_min": 394,
+  "lat": 48.918799,
+  "lon": 2.293199
+ },
+ {
+  "slug": "vaucresson",
+  "nom": "Vaucresson | Château",
+  "adresse": "58 rue de Garches 92420 Vaucresson",
+  "prix_min": 465,
+  "lat": 48.840349,
+  "lon": 2.160122
+ },
+ {
+  "slug": "chaville",
+  "nom": "Chaville | Libération",
+  "adresse": "34 bd de la Libération 92370 Chaville",
+  "prix_min": 470,
+  "lat": 48.802882,
+  "lon": 2.186919
+ },
+ {
+  "slug": "sevres",
+  "nom": "Sèvres | Jules Hetzel",
+  "adresse": "20 rue Jules Hetzel 92310 Sèvres",
+  "prix_min": 612,
+  "lat": 48.821182,
+  "lon": 2.222106
+ },
+ {
+  "slug": "boulogne-silly",
+  "nom": "Boulogne | Silly",
+  "adresse": "99 rue de Silly 92100 Boulogne-Billancourt",
+  "prix_min": 530,
+  "lat": 48.835148,
+  "lon": 2.232734
+ },
+ {
+  "slug": "boulogne-solferino",
+  "nom": "Boulogne | Solférino",
+  "adresse": "23 rue de Solférino 92100 Boulogne-Billancourt",
+  "prix_min": 501,
+  "lat": 48.82904,
+  "lon": 2.243916
+ },
+ {
+  "slug": "boulogne-vieux-pont-de-sevres",
+  "nom": "Boulogne | Vieux Pont de Sèvres",
+  "adresse": "155 rue du Vieux Pont de Sèvres 92100 Boulogne-Billancourt",
+  "prix_min": 501,
+  "lat": 48.831593,
+  "lon": 2.242562
+ },
+ {
+  "slug": "argenteuil",
+  "nom": "Argenteuil | Alfred Labrière",
+  "adresse": "74 rue Alfred Labrière 95100 Argenteuil",
+  "prix_min": 494,
+  "lat": 48.94812,
+  "lon": 2.253753
+ },
+ {
+  "slug": "saint-ouen-docks",
+  "nom": "Saint-Ouen | Les Docks",
+  "adresse": "20 rue Frida Kahlo 93400 Saint-Ouen-sur-Seine",
+  "prix_min": 491,
+  "lat": 48.912789,
+  "lon": 2.327652
+ }
+]
+ALJT_PAGE = "https://www.aljt.com/residence/{slug}/"
+ALJT_DEMANDE = "https://gdc.aljt.com/gdcapi/candidate/step1?language=fr_FR"
+
+
+def parse_aljt(page_html):
+    """Cherche une mention de logements disponibles dans le TEXTE visible de la page."""
+    if "<title>" in page_html and "maintenance" in re.search(r"<title>(.*?)</title>", page_html,
+                                                              re.S | re.I).group(1).lower():
+        raise RuntimeError("site ALJT en maintenance")
+    sans_script = re.sub(r"<(script|style|noscript)[^>]*>.*?</\1>", " ", page_html, flags=re.S | re.I)
+    texte = _txt(sans_script)
+    if "Jardin" not in texte and "logements" not in texte:
+        raise ValueError("page ALJT inattendue")
+    if re.search(r"aucune disponibilit", texte, re.I):
+        return 0
+    m = re.search(r"(\d+)\s+(?:logements?\s+)?disponibles?\b", texte, re.I)
+    return int(m.group(1)) if m else 0
+
+
+def source_aljt():
+    offres, ok = [], 0
+    for r in ALJT_RESIDENCES:
+        if not proche(r["lat"], r["lon"], r.get("prix_min")):
+            continue
+        url = ALJT_PAGE.format(slug=r["slug"])
+        try:
+            nb = parse_aljt(get(url))
+            ok += 1
+            noter("ALJT", verifiees=1)
+        except Exception as e:
+            log(f"ALJT {r['nom']} illisible : {e}")
+            continue
+        if nb <= 0:
+            continue
+        noter("ALJT", dispo=f"{r['nom']} : {nb} logement(s) disponible(s)")
+        offres.append({
+            "cle": f"aljt:{r['slug']}", "quantite": nb, "source": "ALJT",
+            "titre": f"ALJT {r['nom']} — {nb} logement(s) disponible(s)",
+            "adresse": r["adresse"], "prix": r.get("prix_min"),
+            "details": "loyer « à partir de », toutes charges comprises",
+            "lien": url, "lat": r["lat"], "lon": r["lon"], "statut": "Disponible",
+        })
+    if ok == 0:
+        raise RuntimeError("aucune page ALJT lisible")
+    return offres
 
 
 # ---------------------------------------------------------------------------
@@ -569,6 +726,16 @@ def ntfy(titre, texte, lien=None, urgent=False):
 
 
 RAPPORT = {"sources": [], "envois": []}
+FORCER_RESUME = False   # True en mode test : envoie le point du jour tout de suite
+DETAILS = {}   # par source : {"verifiees": n, "dispo": [textes]}
+
+
+def noter(source, verifiees=None, dispo=None):
+    d = DETAILS.setdefault(source, {"verifiees": 0, "dispo": []})
+    if verifiees:
+        d["verifiees"] += verifiees
+    if dispo:
+        d["dispo"].append(dispo)
 
 
 def envoyer(titre, texte_tg, texte_mail, html_mail=None, lien=None, urgent=False,
@@ -701,12 +868,14 @@ SOURCES = [
     ("Fac-Habitat", "SURVEILLER_FAC_HABITAT", source_fac_habitat),
     ("ARPEJ", "SURVEILLER_ARPEJ", source_arpej),
     ("Stud'City", "SURVEILLER_STUDCITY", source_studcity),
+    ("ALJT", "SURVEILLER_ALJT", source_aljt),
     ("Pages en plus", None, source_pages),
 ]
 
 
 def passage(simulation=False):
     RAPPORT["sources"].clear()
+    DETAILS.clear()
     etat = charger_etat()
     sources_etat = etat.setdefault("sources", {})
     stats = etat.setdefault("stats", {"passages": 0, "alertes": 0})
@@ -751,27 +920,6 @@ def passage(simulation=False):
         else:
             a_envoyer.extend(nouvelles)
 
-    # ALJT : on guette le retour du site
-    if R.SURVEILLER_ALJT:
-        a = sources_etat.setdefault("ALJT", {})
-        try:
-            en_ligne = aljt_en_ligne()
-            log(f"ALJT : {'EN LIGNE' if en_ligne else 'toujours en maintenance'}")
-            RAPPORT["sources"].append({"nom": "ALJT", "ok": True,
-                                       "info": "en ligne" if en_ligne else "toujours en maintenance"})
-            if en_ligne and a.get("en_ligne") is False:
-                envoyer("🔔 Le site ALJT est de retour !",
-                        "🔔 <b>Le site ALJT est de nouveau en ligne !</b>\n"
-                        "Va vite regarder les résidences autour de Nanterre / La Défense "
-                        "et dépose ton dossier.\n\n" + ALJT_URL,
-                        f"Le site ALJT est de nouveau en ligne : {ALJT_URL}\n"
-                        "Va vite regarder les résidences autour de Nanterre / La Défense.",
-                        lien=ALJT_URL, urgent=True, simulation=simulation)
-            a["en_ligne"] = en_ligne
-        except Exception as e:
-            log(f"ALJT : injoignable ({e})")
-            RAPPORT["sources"].append({"nom": "ALJT", "ok": False, "erreur": str(e)[:150]})
-
     # Message de bienvenue (une seule fois)
     if resume_actuel and not etat.get("bienvenue"):
         lignes_tg, lignes_txt = [], []
@@ -808,7 +956,9 @@ def passage(simulation=False):
     # Résumé quotidien (preuve que tout tourne + ce qui est dispo en ce moment)
     loc = datetime.now(PARIS)
     jour = loc.strftime("%Y-%m-%d")
-    if (getattr(R, "RESUME_QUOTIDIEN", True) and loc.hour >= getattr(R, "HEURE_RESUME", 20)
+    if FORCER_RESUME:
+        envoyer_resume(stats, dispo_actuelles, simulation)
+    elif (getattr(R, "RESUME_QUOTIDIEN", True) and loc.hour >= getattr(R, "HEURE_RESUME", 20)
             and etat.get("dernier_resume_jour") != jour):
         envoyer_resume(stats, dispo_actuelles, simulation)
         if not simulation:
@@ -821,11 +971,26 @@ def passage(simulation=False):
     ecrire_rapport_github()
 
 
+def ligne_source(r):
+    """Texte clair de l'état d'une source pour le point du jour."""
+    if not r["ok"]:
+        return "❌ ne répond pas"
+    d = DETAILS.get(r["nom"], {})
+    if r["nom"] == "CROUS":
+        return (f"✅ {r.get('en_ligne', 0)} logements en ligne dans toute la France, "
+                f"{r.get('criteres', 0)} dans tes critères")
+    n = d.get("verifiees", 0)
+    dispo = d.get("dispo", [])
+    base = f"✅ {n} résidence(s) proche(s) vérifiée(s)"
+    if not dispo:
+        return base + " — tout est complet"
+    return base + f" — {len(dispo)} dispo, {r.get('criteres', 0)} dans tes critères : " + " ; ".join(dispo[:4])
+
+
 def envoyer_resume(stats, dispo, simulation=False):
     sante_tg, sante_txt = [], []
     for r in RAPPORT["sources"]:
-        etat_txt = ("✅ " + (r.get("info") or f"{r.get('en_ligne', 0)} en ligne, "
-                              f"{r.get('criteres', 0)} dans tes critères")) if r["ok"] else "❌ ne répond pas"
+        etat_txt = ligne_source(r)
         sante_tg.append(f"• {esc(r['nom'])} : {esc(etat_txt)}")
         sante_txt.append(f"- {r['nom']} : {etat_txt}")
     dispo = sorted(dispo, key=lambda o: o.get("prix") or 9999)
@@ -938,6 +1103,7 @@ if __name__ == "__main__":
     if "--test" in sys.argv or env("MODE_TEST").lower() == "true":
         log("MODE TEST activé")
         test()
+        FORCER_RESUME = True
     elif env("TELEGRAM_TOKEN") and not env("TELEGRAM_CHAT_ID"):
         diagnostic_telegram()
     passage(simulation="--simulation" in sys.argv)
