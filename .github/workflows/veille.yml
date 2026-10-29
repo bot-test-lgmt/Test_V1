@@ -15,14 +15,14 @@ on:
 # Un seul passage à la fois (les suivants attendent leur tour)
 concurrency:
   group: veille-logement
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 permissions:
   contents: read
 
 jobs:
   veille:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 8
     steps:
       - uses: actions/checkout@v4
