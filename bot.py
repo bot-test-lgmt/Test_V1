@@ -164,7 +164,9 @@ def evaluer(offre):
         t, m, txt = trajet(offre["lat"], offre["lon"])
         offre["trajet"], offre["marche"], offre["trajet_txt"] = t, m, txt
     prix = offre.get("prix")
-    super_prix = prix is not None and prix <= R.LOYER_IDEAL
+    # "objectif < 500 €" seulement si le prix est CONNU (pas un simple « à partir de »)
+    super_prix = (prix is not None and offre.get("prix_type") != "a_partir"
+                  and (offre.get("prix_max") or prix) <= R.LOYER_IDEAL)
     defense = a_la_defense(offre.get("lat"), offre.get("lon"))
     a_pied = offre.get("marche") is not None and offre["marche"] <= R.MARCHE_TOP_MIN
     if offre.get("trajet") is not None:
@@ -243,6 +245,7 @@ def crous_offre(item, outil):
     loyers = [(m.get("rent") or {}).get("min") for m in modes]
     loyers = [l for l in loyers if l]
     prix = int(min(loyers) / 100 + 0.5) if loyers else None
+    prix_max = int(max(loyers) / 100 + 0.5) if loyers else None
     surf = item.get("area") or {}
     if surf.get("min") and surf.get("max") and surf["min"] != surf["max"]:
         surface = f"{surf['min']:g} à {surf['max']:g} m²"
@@ -256,7 +259,7 @@ def crous_offre(item, outil):
         "source": "CROUS",
         "titre": f"{(resid.get('label') or 'Résidence CROUS').title()} — {item.get('label') or 'logement'}",
         "adresse": resid.get("address") or "",
-        "prix": prix,
+        "prix": prix, "prix_max": prix_max, "prix_type": "exact",
         "details": " · ".join(x for x in (surface, occup) if x),
         "lien": CROUS_LIEN.format(outil=outil, id=item.get("id")),
         "lat": loc.get("lat"), "lon": loc.get("lon"),
@@ -365,8 +368,8 @@ def source_fac_habitat():
                 "source": "Fac-Habitat" if "logifac" not in r["url_dispo"] else "Logifac",
                 "titre": f"{r['nom']} — {l['type']}",
                 "adresse": r["adresse"],
-                "prix": l["prix"],
-                "details": l["surface"],
+                "prix": l["prix"], "prix_type": "a_partir",
+                "details": " · ".join(x for x in (l["surface"], "loyer exact selon le logement, à vérifier sur le site") if x),
                 "lien": r["page"] + "#reservation",
                 "lat": r["lat"], "lon": r["lon"],
                 "statut": l["statut"],
@@ -407,6 +410,56 @@ def parse_arpej(page_html):
     }
 
 
+IBAIL = "https://ibail.arpej.fr"
+
+
+def _euros(txt):
+    return [float(x.replace(" ", "").replace(",", ".")) for x in re.findall(r"(\d[\d ]*,\d+|\d+)\s*€", txt)]
+
+
+def ibail_mois(page_html):
+    """Liens des mois disponibles sur la page iBail d'une résidence."""
+    return [(html.unescape(u), _txt(m)) for u, m in
+            re.findall(r'href="(/residences/\d+/offers\?month=\d+&(?:amp;)?year=\d+)"[^>]*>([^<]+)<', page_html)]
+
+
+def parse_ibail_offres(page_html):
+    """Logements réellement proposés (type, description, nombre, loyer exact, surface)."""
+    offres = []
+    blocs = re.split(r"<h3[^>]*>", page_html)[1:]
+    for b in blocs:
+        typ = _txt(b.split("</h3>")[0])
+        desc = re.search(r"<p[^>]*>(.*?)</p>", b, re.S)
+        nb = re.search(r"(\d+)\s+disponibles?", b)
+        loyer = re.search(r"Loyer TTC\s*:?\s*</dt>\s*<dd[^>]*>(.*?)</dd>", b, re.S)
+        surf = re.search(r"Surface du logement\s*:?\s*</dt>\s*<dd[^>]*>(.*?)</dd>", b, re.S)
+        lien = re.search(r'href="(/registration/new\?availability_id=\d+)"', b)
+        montants = _euros(_txt(loyer.group(1))) if loyer else []
+        if not montants:
+            continue
+        offres.append({
+            "type": typ, "desc": _txt(desc.group(1)) if desc else "",
+            "nb": int(nb.group(1)) if nb else 1,
+            "loyer_min": min(montants), "loyer_max": max(montants),
+            "surface": _txt(surf.group(1)).replace("m 2", "m²").replace("m2", "m²") if surf else "",
+            "lien": IBAIL + lien.group(1) if lien else None,
+        })
+    return offres
+
+
+def arpej_offres_reelles(lien_dossier):
+    """Lit iBail : renvoie {type: offre agrégée sur tous les mois}."""
+    par_type = {}
+    for url, mois in ibail_mois(get(lien_dossier)):
+        for o in parse_ibail_offres(get(IBAIL + url)):
+            t = par_type.setdefault(o["type"], dict(o, mois=[]))
+            t["mois"].append(mois)
+            t["nb"] = max(t["nb"], o["nb"])
+            t["loyer_min"] = min(t["loyer_min"], o["loyer_min"])
+            t["loyer_max"] = max(t["loyer_max"], o["loyer_max"])
+    return par_type
+
+
 def source_arpej():
     residences = json.loads((DATA / "arpej.json").read_text(encoding="utf-8"))
     offres, ok = [], 0
@@ -424,20 +477,43 @@ def source_arpej():
             continue
         if info["nb"] <= 0:
             continue
-        noter("ARPEJ", dispo=f"{info['nom']} ({r['ville']}) : {info['texte']} ({info['prix']} €)")
-        offres.append({
-            "cle": f"arpej:{r['nom']}",
-            "quantite": info["nb"],
-            "source": "ARPEJ",
-            "titre": f"{info['nom'] or 'Résidence ARPEJ'} ({r['ville']}) — {info['texte']}",
-            "adresse": f"{r['cp']} {r['ville']}",
-            "prix": info["prix"] or round(r["prix_min"]),
-            "details": "loyer « à partir de »",
-            "lien": info["lien_dossier"] or r["page"],
-            "page": r["page"],
-            "lat": r["lat"], "lon": r["lon"],
-            "statut": "Disponible",
-        })
+        nom = info["nom"] or "Résidence ARPEJ"
+        reels = {}
+        if info["lien_dossier"]:
+            try:
+                reels = arpej_offres_reelles(info["lien_dossier"])
+            except Exception as e:
+                log(f"ARPEJ {nom} : détail iBail illisible ({e}), j'utilise le prix « à partir de »")
+        if not reels:          # secours : on ne connaît que le prix « à partir de »
+            noter("ARPEJ", dispo=f"{nom} ({r['ville']}) : {info['texte']} (dès {info['prix']} €)")
+            offres.append({
+                "cle": f"arpej:{r['nom']}", "quantite": info["nb"], "source": "ARPEJ",
+                "titre": f"{nom} ({r['ville']}) — {info['texte']}",
+                "adresse": f"{r['cp']} {r['ville']}",
+                "prix": info["prix"] or round(r["prix_min"]), "prix_type": "a_partir",
+                "details": "type de logement et loyer exact à vérifier sur le site",
+                "lien": info["lien_dossier"] or r["page"],
+                "lat": r["lat"], "lon": r["lon"], "statut": "Disponible",
+            })
+            continue
+        for typ, o in reels.items():
+            coloc = "coloc" in (typ + o["desc"]).lower()
+            if coloc and not R.INCLURE_COLOCATION:
+                continue
+            noter("ARPEJ", dispo=f"{nom} ({r['ville']}) : {typ} à {round(o['loyer_min'])} €")
+            details = " · ".join(x for x in (
+                o["desc"], o["surface"],
+                f"{o['nb']} disponible{'s' if o['nb'] > 1 else ''}",
+                "dispo " + ", ".join(o["mois"]) if o["mois"] else "") if x)
+            offres.append({
+                "cle": f"arpej:{r['nom']}:{typ}", "quantite": o["nb"], "source": "ARPEJ",
+                "titre": f"{nom} ({r['ville']}) — {typ}" + (" (colocation)" if coloc and "coloc" not in typ.lower() else ""),
+                "adresse": f"{r['cp']} {r['ville']}",
+                "prix": round(o["loyer_min"]), "prix_max": round(o["loyer_max"]), "prix_type": "exact",
+                "details": details,
+                "lien": o["lien"] or info["lien_dossier"],
+                "lat": r["lat"], "lon": r["lon"], "statut": "Disponible",
+            })
     if ok == 0:
         raise RuntimeError("aucune page ARPEJ lisible")
     return offres
@@ -462,13 +538,14 @@ def parse_studcity(page_html):
     if "Pré-réservez votre logement" not in page_html and "is-complet" not in page_html:
         raise ValueError("page Stud'City inattendue")
     m = re.search(r'<p class="is-complet">\s*(.*?)\s*</p>', page_html, re.S)
-    prix = re.search(r'id="tarifs".*?(\d{3})\s*à\s*\d{3}\s*€', page_html, re.S) or \
-        re.search(r'(\d{3})\s*à\s*\d{3}\s*€', page_html)
+    prix = re.search(r'id="tarifs".*?(\d{3})\s*à\s*(\d{3,4})\s*€', page_html, re.S) or \
+        re.search(r'(\d{3})\s*à\s*(\d{3,4})\s*€', page_html)
     lien = re.search(r'href="([^"]*reservation-locataire[^"]*)"', page_html)
     return {
         "complet": bool(m),
         "jusqua": _txt(m.group(1)) if m else "",
         "prix": int(prix.group(1)) if prix else None,
+        "prix_max": int(prix.group(2)) if prix else None,
         "lien": ("https://www.studcity.fr/" + lien.group(1).lstrip("/")) if lien and not
                 lien.group(1).startswith("http") else (lien.group(1) if lien else None),
     }
@@ -494,8 +571,9 @@ def source_studcity():
             "cle": f"studcity:{r['slug']}",
             "source": "Stud'City",
             "titre": f"{r['nom']} — plus affichée complète, pré-réservation ouverte",
-            "adresse": r["adresse"], "prix": info["prix"],
-            "details": "loyer « à partir de », T1",
+            "adresse": r["adresse"], "prix": info["prix"], "prix_max": info.get("prix_max"),
+            "prix_type": "a_partir",
+            "details": "T1 ; loyer exact selon le logement, à vérifier sur le site",
             "lien": url, "lat": r["lat"], "lon": r["lon"], "statut": "Disponible",
         })
     if ok == 0 and any(proche(r["lat"], r["lon"]) for r in STUDCITY):
@@ -642,12 +720,69 @@ def source_aljt():
         offres.append({
             "cle": f"aljt:{r['slug']}", "quantite": nb, "source": "ALJT",
             "titre": f"ALJT {r['nom']} — {nb} logement(s) disponible(s)",
-            "adresse": r["adresse"], "prix": r.get("prix_min"),
-            "details": "loyer « à partir de », toutes charges comprises",
+            "adresse": r["adresse"], "prix": r.get("prix_min"), "prix_type": "a_partir",
+            "details": "toutes charges comprises ; loyer exact selon le logement",
             "lien": url, "lat": r["lat"], "lon": r["lon"], "statut": "Disponible",
         })
     if ok == 0:
         raise RuntimeError("aucune page ALJT lisible")
+    return offres
+
+
+# ---------------------------------------------------------------------------
+# Source : Espacil (résidences étudiants / alternants à Nanterre)
+# Espacil attribue sur demande (demande-jeunes.espacil.com) et ne publie pas de
+# disponibilités : on surveille quand même la page au cas où elle en annoncerait.
+# ---------------------------------------------------------------------------
+ESPACIL = [
+    {"slug": "residence-etudiante-jeune-actif-sirius-nanterre", "nom": "Espacil Sirius",
+     "adresse": "101 allée d'Aquitaine 92000 Nanterre", "lat": 48.901909, "lon": 2.217527, "prix_min": 424},
+    {"slug": "residence-etudiante-cassiopee-nanterre", "nom": "Espacil Cassiopée",
+     "adresse": "50 avenue de la République 92000 Nanterre", "lat": 48.899428, "lon": 2.201015, "prix_min": 384},
+    {"slug": "residence-etuditante-orion-nanterre", "nom": "Espacil Orion",
+     "adresse": "10 rue de la Chasse 92000 Nanterre", "lat": 48.897049, "lon": 2.194433, "prix_min": 377},
+]
+ESPACIL_PAGE = "https://www.espacil.com/louer/residence/{slug}"
+ESPACIL_DEMANDE = "https://demande-jeunes.espacil.com/premiers-pas"
+
+
+def parse_espacil(page_html):
+    sans_script = re.sub(r"<(script|style|noscript)[^>]*>.*?</\1>", " ", page_html, flags=re.S | re.I)
+    texte = _txt(sans_script)
+    if "Mensualit" not in texte and "Faire une demande" not in texte:
+        raise ValueError("page Espacil inattendue")
+    prix = [int(x) for x in re.findall(r"à partir de\s*(\d{3})\s*€", texte)]
+    m = re.search(r"(\d+)\s+(?:logements?|appartements?|places?|studios?)\s+disponibles?\b", texte, re.I)
+    dispo_immediate = re.search(r"disponibles?\s+(?:immédiatement|dès maintenant|tout de suite)", texte, re.I)
+    nb = int(m.group(1)) if m else (1 if dispo_immediate else 0)
+    return {"nb": nb, "prix": min(prix) if prix else None}
+
+
+def source_espacil():
+    offres, ok = [], 0
+    for r in ESPACIL:
+        if not proche(r["lat"], r["lon"], r["prix_min"]):
+            continue
+        url = ESPACIL_PAGE.format(slug=r["slug"])
+        try:
+            info = parse_espacil(get(url))
+            ok += 1
+            noter("Espacil", verifiees=1)
+        except Exception as e:
+            log(f"Espacil {r['nom']} illisible : {e}")
+            continue
+        if info["nb"] <= 0:
+            continue
+        noter("Espacil", dispo=f"{r['nom']} : {info['nb']} disponible(s)")
+        offres.append({
+            "cle": f"espacil:{r['slug']}", "quantite": info["nb"], "source": "Espacil",
+            "titre": f"{r['nom']} (Nanterre) — la page annonce {info['nb']} logement(s) disponible(s)",
+            "adresse": r["adresse"], "prix": info["prix"] or r["prix_min"], "prix_type": "a_partir",
+            "details": "dépose ta demande sur demande-jeunes.espacil.com",
+            "lien": url, "lat": r["lat"], "lon": r["lon"], "statut": "Disponible",
+        })
+    if ok == 0:
+        raise RuntimeError("aucune page Espacil lisible")
     return offres
 
 
@@ -771,6 +906,20 @@ def esc(s):
     return html.escape(str(s or ""))
 
 
+def texte_prix(o):
+    """'480 €/mois', 'de 480 à 520 €/mois' ou 'dès 480 €/mois (prix exact à vérifier)'."""
+    p, pm = o.get("prix"), o.get("prix_max")
+    if not p:
+        return "prix non indiqué"
+    if o.get("prix_type") == "a_partir":
+        if pm and pm != p:
+            return f"de {p} à {pm} €/mois selon le logement (prix exact à vérifier)"
+        return f"dès {p} €/mois (prix exact à vérifier sur le site)"
+    if pm and pm - p >= 2:
+        return f"de {p} à {pm} €/mois"
+    return f"{p} €/mois"
+
+
 def formater(o):
     """Construit les textes Telegram / email pour une offre."""
     tetes = []
@@ -784,9 +933,9 @@ def formater(o):
         tetes.append("🏙 La Défense")
     if o.get("super_prix"):
         tetes.append("💰 OBJECTIF : moins de 500 €")
-    elif o.get("prix") and o["prix"] > R.LOYER_MAX:
+    elif o.get("prix") and (o.get("prix_max") or o["prix"]) > R.LOYER_MAX:
         tetes.append("❤️ coup de cœur ? (cher mais très bien placé)")
-    prix = f"{o['prix']} €/mois" if o.get("prix") else "prix non indiqué"
+    prix = texte_prix(o)
     tg = (f"<b>{' · '.join(tetes)}</b>\n"
           f"🏠 <b>{esc(o['titre'])}</b>\n"
           f"🏷 {esc(o['source'])} — <b>{esc(prix)}</b>\n"
@@ -799,7 +948,8 @@ def formater(o):
            + (f"{o['adresse']}\n" if o.get("adresse") else "")
            + f"Trajet : {o.get('trajet_txt')} jusqu'à l'ESILV\n\n"
            f"Lien direct : {o['lien']}\n\nFonce, ça part vite !")
-    sujet = f"🏠 {o['source']} : {o['titre'][:60]} — {prix} — {o.get('trajet_txt', '').split('(')[0].strip()}"
+    prix_court = (f"dès {o['prix']} €" if o.get("prix_type") == "a_partir" else prix.replace("/mois", "")) if o.get("prix") else "prix ?"
+    sujet = f"🏠 {o['source']} : {o['titre'][:60]} — {prix_court} — {o.get('trajet_txt', '').split('(')[0].strip()}"
     h = (f"<div style='font-family:sans-serif;font-size:15px'>"
          f"<p style='font-size:18px'><b>{esc(' · '.join(tetes))}</b></p>"
          f"<p><b>{esc(o['titre'])}</b><br>{esc(o['source'])} — <b>{esc(prix)}</b><br>"
@@ -869,6 +1019,7 @@ SOURCES = [
     ("ARPEJ", "SURVEILLER_ARPEJ", source_arpej),
     ("Stud'City", "SURVEILLER_STUDCITY", source_studcity),
     ("ALJT", "SURVEILLER_ALJT", source_aljt),
+    ("Espacil", "SURVEILLER_ESPACIL", source_espacil),
     ("Pages en plus", None, source_pages),
 ]
 
@@ -926,7 +1077,7 @@ def passage(simulation=False):
         for nom, offres in resume_actuel:
             if offres:
                 for o in offres[:8]:
-                    prix = f"{o['prix']} €" if o.get("prix") else "?"
+                    prix = texte_prix(o)
                     lignes_tg.append(f"• {esc(o['source'])} — {esc(o['titre'])} — <b>{prix}</b> — "
                                      f"{esc(o['trajet_txt'].split('(')[0].strip())}\n  {esc(o['lien'])}")
                     lignes_txt.append(f"- {o['source']} — {o['titre']} — {prix} — {o['trajet_txt']}\n  {o['lien']}")
@@ -934,11 +1085,11 @@ def passage(simulation=False):
         deja_txt = "\n".join(lignes_txt) if lignes_txt else "Rien pour l'instant dans tes critères."
         envoyer("✅ Ton bot logement est lancé",
                 "✅ <b>Ton bot logement est lancé !</b>\n"
-                f"Je surveille CROUS, Fac-Habitat, ARPEJ, Stud'City et ALJT autour de l'ESILV "
+                f"Je surveille CROUS, Fac-Habitat, ARPEJ, Stud'City, ALJT et Espacil autour de l'ESILV "
                 f"(≤ {R.TRAJET_MAX_MIN} min, ≤ {R.LOYER_MAX} €).\n"
                 "Je t'écris dès qu'un NOUVEAU logement apparaît.\n\n"
                 f"<b>Déjà disponible en ce moment :</b>\n{deja}",
-                "Ton bot logement est lancé ! Je surveille CROUS, Fac-Habitat, ARPEJ, Stud'City et ALJT "
+                "Ton bot logement est lancé ! Je surveille CROUS, Fac-Habitat, ARPEJ, Stud'City, ALJT et Espacil "
                 f"autour de l'ESILV (≤ {R.TRAJET_MAX_MIN} min, ≤ {R.LOYER_MAX} €).\n\n"
                 f"Déjà disponible en ce moment :\n{deja_txt}",
                 simulation=simulation)
@@ -995,10 +1146,10 @@ def envoyer_resume(stats, dispo, simulation=False):
         sante_txt.append(f"- {r['nom']} : {etat_txt}")
     dispo = sorted(dispo, key=lambda o: o.get("prix") or 9999)
     if dispo:
-        lignes_tg = [f"• <b>{o['prix'] or '?'} €</b> — {esc(o['titre'])} "
+        lignes_tg = [f"• <b>{esc(texte_prix(o))}</b> — {esc(o['titre'])} "
                      f"({esc(o['trajet_txt'].split('(')[0].strip())})\n  {esc(o['lien'])}"
                      for o in dispo[:8]]
-        lignes_txt = [f"- {o['prix'] or '?'} € — {o['titre']} ({o['trajet_txt']})\n  {o['lien']}"
+        lignes_txt = [f"- {texte_prix(o)} — {o['titre']} ({o['trajet_txt']})\n  {o['lien']}"
                       for o in dispo[:8]]
         dispo_tg = "\n".join(lignes_tg)
         dispo_txt = "\n".join(lignes_txt)

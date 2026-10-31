@@ -41,6 +41,7 @@ SURVEILLER_FAC_HABITAT = True    # Fac-Habitat + Logifac
 SURVEILLER_ARPEJ = True
 SURVEILLER_STUDCITY = True       # Stud'City (AREF) : La Colline de l'Arche, Courbevoie
 SURVEILLER_ALJT = True
+SURVEILLER_ESPACIL = True        # Espacil : Sirius, Cassiopée, Orion (Nanterre)
 ALERTER_FAC_HABITAT_A_VENIR = True   # prévenir aussi quand c'est "A venir"
 
 # Numéros des "outils" de recherche CROUS (ils changent chaque année).
